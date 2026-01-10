@@ -25,10 +25,31 @@ class PresensiProvider extends ChangeNotifier {
   bool _hasCheckedIn = false;
   bool get hasCheckedIn => _hasCheckedIn;
 
+  bool _hasCheckedOut = false;
+  bool get hasCheckedOut => _hasCheckedOut;
+
   double _distanceToOffice = 0.0;
   double get distanceToOffice => _distanceToOffice;
 
   StreamSubscription<Position>? _positionSubscription;
+
+  Future<void> checkTodayStatus() async {
+    try {
+      final result = await submitPresensiUseCase.repository.getTodayAttendance('unknown_employee');
+      if (result['success'] == true) {
+        final data = result['data']['data'];
+        if (data != null) {
+          _hasCheckedIn = true;
+          if (data['checkout_time'] != null) {
+            _hasCheckedOut = true;
+          }
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error checking status: $e');
+    }
+  }
 
   Future<void> getCurrentLocation() async {
     _isLoading = true;
@@ -145,8 +166,12 @@ class PresensiProvider extends ChangeNotifier {
     _isLoading = false;
     _message = result['message'];
     
-    if (result['success'] == true && type == 'MASUK') {
-      _hasCheckedIn = true;
+    if (result['success'] == true) {
+      if (type == 'MASUK') {
+        _hasCheckedIn = true;
+      } else if (type == 'KELUAR') {
+        _hasCheckedOut = true;
+      }
     }
     
     notifyListeners();

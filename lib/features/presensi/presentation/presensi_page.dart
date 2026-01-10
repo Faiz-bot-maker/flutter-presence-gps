@@ -22,6 +22,7 @@ class _PresensiPageState extends State<PresensiPage> {
       final provider = context.read<PresensiProvider>();
       provider.getCurrentLocation();
       provider.startLocationUpdates();
+      provider.checkTodayStatus();
     });
   }
 
@@ -105,11 +106,11 @@ class _PresensiPageState extends State<PresensiPage> {
                                               width: 16,
                                               height: 16,
                                               decoration: BoxDecoration(
-                                                color: hasCheckedIn ? Colors.green : Colors.red,
+                                                color: hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red,
                                                 shape: BoxShape.circle,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: (hasCheckedIn ? Colors.green : Colors.red).withValues(alpha: 0.5),
+                                                    color: (hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red).withValues(alpha: 0.5),
                                                     blurRadius: 10,
                                                     spreadRadius: 2,
                                                   ),
@@ -118,10 +119,10 @@ class _PresensiPageState extends State<PresensiPage> {
                                             ),
                                             const SizedBox(width: 12),
                                             Text(
-                                              hasCheckedIn ? 'SUDAH MASUK' : 'BELUM MASUK',
+                                              hasCheckedIn ? (provider.hasCheckedOut ? 'SUDAH PULANG' : 'SUDAH MASUK') : 'BELUM MASUK',
                                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                                 fontWeight: FontWeight.bold,
-                                                color: hasCheckedIn ? Colors.green : Colors.red,
+                                                color: hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red,
                                                 letterSpacing: 1.0,
                                               ),
                                             ),
@@ -162,26 +163,26 @@ class _PresensiPageState extends State<PresensiPage> {
                                 
                                 Row(
                                   children: [
-                                    // Tombol Masuk selalu ada
-                                    Expanded(
-                                      child: _PresenceButton(
-                                        label: 'Absen Masuk',
-                                        icon: Icons.login_rounded,
-                                        color: Colors.green,
-                                        onPressed: provider.isLoading || !isReady || !inRadius
-                                            ? null
-                                            : () async {
-                                                await provider.submitPresensi('MASUK');
-                                                if (!context.mounted) return;
-                                                _showResultSnack(context, provider.message, scheme);
-                                              },
-                                        isLoading: provider.isLoading,
+                                    // Tombol Masuk: Muncul jika belum checkin
+                                    if (!hasCheckedIn)
+                                      Expanded(
+                                        child: _PresenceButton(
+                                          label: 'Absen Masuk',
+                                          icon: Icons.login_rounded,
+                                          color: Colors.green,
+                                          onPressed: provider.isLoading || !isReady || !inRadius
+                                              ? null
+                                              : () async {
+                                                  await provider.submitPresensi('MASUK');
+                                                  if (!context.mounted) return;
+                                                  _showResultSnack(context, provider.message, scheme);
+                                                },
+                                          isLoading: provider.isLoading,
+                                        ),
                                       ),
-                                    ),
                                     
-                                    // Tombol Keluar: Hanya muncul jika hasCheckedIn
-                                    if (hasCheckedIn) ...[
-                                      const SizedBox(width: 16),
+                                    // Tombol Keluar: Muncul jika sudah checkin tapi belum checkout
+                                    if (hasCheckedIn && !provider.hasCheckedOut)
                                       Expanded(
                                         child: _PresenceButton(
                                           label: 'Absen Keluar',
@@ -198,7 +199,38 @@ class _PresensiPageState extends State<PresensiPage> {
                                           isLoading: provider.isLoading,
                                         ),
                                       ),
-                                    ],
+
+                                    // Info Sudah Pulang
+                                    if (hasCheckedIn && provider.hasCheckedOut)
+                                      Expanded(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                            borderRadius: BorderRadius.circular(16),
+                                            border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Presensi Hari Ini Selesai',
+                                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: scheme.onSurface,
+                                                ),
+                                              ),
+                                              Text(
+                                                'Sampai jumpa besok!',
+                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                  color: scheme.onSurfaceVariant,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                                 
