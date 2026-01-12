@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/utils/constants.dart';
@@ -10,177 +9,155 @@ class PresensiProvider extends ChangeNotifier {
 
   PresensiProvider({required this.submitPresensiUseCase});
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  Position? currentPosition;
+  bool isInOfficeRadius = false;
+  bool isLoading = false;
 
-  String _message = '';
-  String get message => _message;
+  bool hasCheckedIn = false;
+  bool hasCheckedOut = false;
 
-  Position? _currentPosition;
-  Position? get currentPosition => _currentPosition;
+  String message = '';
 
-  bool _isInOfficeRadius = false;
-  bool get isInOfficeRadius => _isInOfficeRadius;
-  
-  bool _hasCheckedIn = false;
-  bool get hasCheckedIn => _hasCheckedIn;
+  StreamSubscription<Position>? _positionStream;
 
-  bool _hasCheckedOut = false;
-  bool get hasCheckedOut => _hasCheckedOut;
-
-  double _distanceToOffice = 0.0;
-  double get distanceToOffice => _distanceToOffice;
-
-  StreamSubscription<Position>? _positionSubscription;
-
+  /// ===============================
+  /// CEK STATUS HARI INI (DUMMY)
+  /// ===============================
   Future<void> checkTodayStatus() async {
-    try {
-      final result = await submitPresensiUseCase.repository.getTodayAttendance('unknown_employee');
-      if (result['success'] == true) {
-        final data = result['data']['data'];
-        if (data != null) {
-          _hasCheckedIn = true;
-          if (data['checkout_time'] != null) {
-            _hasCheckedOut = true;
-          }
-        }
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error checking status: $e');
-    }
-  }
-
-  Future<void> getCurrentLocation() async {
-    _isLoading = true;
-    _message = 'Mengambil lokasi...';
+    // nanti bisa sambung API
+    hasCheckedIn = false;
+    hasCheckedOut = false;
     notifyListeners();
+  }
 
+  /// ===============================
+  /// PERMISSION & LOKASI (AMAN)
+  /// ===============================
+  Future<void> getCurrentLocation() async {
     try {
-      final ok = await _ensureLocationAccess();
-      if (!ok) return;
+      // 1. GPS aktif?
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        message = 'GPS tidak aktif. Aktifkan lokasi.';
+        notifyListeners();
+        return;
+      }
 
-      _currentPosition = await Geolocator.getCurrentPosition();
-      _updateFromPosition(_currentPosition!);
+      // 2. Cek permission
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        message = 'Izin lokasi ditolak';
+        notifyListeners();
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        message =
+            'Izin lokasi ditolak permanen. Aktifkan dari pengaturan aplikasi.';
+        notifyListeners();
+        return;
+      }
+
+      // 3. Ambil lokasi (FOREGROUND ONLY)
+      currentPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      _checkRadius();
+      message = '';
+      notifyListeners();
     } catch (e) {
-      _message = 'Gagal mengambil lokasi: $e';
-    } finally {
-      _isLoading = false;
+      message = 'Gagal mendapatkan lokasi';
       notifyListeners();
     }
   }
 
-  Future<void> startLocationUpdates() async {
-    if (_positionSubscription != null) return;
+  /// ===============================
+  /// UPDATE LOKASI REALTIME (AMAN)
+  /// ===============================
+  void startLocationUpdates() {
+    _positionStream?.cancel();
 
-    final ok = await _ensureLocationAccess();
-    if (!ok) return;
-
-    const settings = LocationSettings(
-      accuracy: LocationAccuracy.best,
-      distanceFilter: 5,
-    );
-
-    _positionSubscription = Geolocator.getPositionStream(locationSettings: settings).listen(
-      (pos) {
-        _currentPosition = pos;
-        _updateFromPosition(pos);
-        notifyListeners();
-      },
-      onError: (e) {
-        _message = 'Gagal update lokasi: $e';
-        notifyListeners();
-      },
-    );
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 10,
+      ),
+    ).listen((position) {
+      currentPosition = position;
+      _checkRadius();
+      notifyListeners();
+    });
   }
 
-  void _updateFromPosition(Position pos) {
-    _distanceToOffice = Geolocator.distanceBetween(
-      pos.latitude,
-      pos.longitude,
+  /// ===============================
+  /// CEK RADIUS KANTOR
+  /// ===============================
+  void _checkRadius() {
+    if (currentPosition == null) {
+      isInOfficeRadius = false;
+      return;
+    }
+
+    final distance = Geolocator.distanceBetween(
+      currentPosition!.latitude,
+      currentPosition!.longitude,
       Constants.officeLatitude,
       Constants.officeLongitude,
     );
 
-    _isInOfficeRadius = _distanceToOffice <= Constants.maxDistanceInMeters;
-
-    if (_isInOfficeRadius) {
-      _message = 'Di dalam radius kantor (${_distanceToOffice.toStringAsFixed(1)}m)';
-    } else {
-      _message = 'Di luar radius kantor (${_distanceToOffice.toStringAsFixed(1)}m)';
-    }
+    // 🔥 TOLERANSI GPS ±25M (WAJIB)
+    isInOfficeRadius =
+        distance <= (Constants.maxDistanceInMeters + 25);
   }
 
-  Future<bool> _ensureLocationAccess() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _message = 'Layanan lokasi tidak aktif.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _message = 'Izin lokasi ditolak.';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      _message = 'Izin lokasi ditolak permanen.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-
-    return true;
-  }
-
+  /// ===============================
+  /// SUBMIT PRESENSI
+  /// ===============================
   Future<void> submitPresensi(String type) async {
-    if (_currentPosition == null) {
-      _message = 'Lokasi belum ditemukan.';
+    if (!isInOfficeRadius) {
+      message = 'Anda berada di luar radius kantor';
       notifyListeners();
       return;
     }
 
-    if (!_isInOfficeRadius) {
-      _message = 'Gagal: Anda di luar radius kantor.';
-      notifyListeners();
-      return;
-    }
-
-    _isLoading = true;
+    isLoading = true;
     notifyListeners();
 
-    final result = await submitPresensiUseCase.execute(
-      _currentPosition!.latitude,
-      _currentPosition!.longitude,
-      type,
-    );
+    try {
+      await submitPresensiUseCase.execute(
+        type: type,
+        latitude: currentPosition!.latitude,
+        longitude: currentPosition!.longitude,
+      );
 
-    _isLoading = false;
-    _message = result['message'];
-    
-    if (result['success'] == true) {
       if (type == 'MASUK') {
-        _hasCheckedIn = true;
-      } else if (type == 'KELUAR') {
-        _hasCheckedOut = true;
+        hasCheckedIn = true;
+        hasCheckedOut = false;
+      } else {
+        hasCheckedOut = true;
       }
+
+      message = 'Presensi berhasil';
+    } catch (e) {
+      message = 'Presensi gagal';
     }
-    
+
+    isLoading = false;
     notifyListeners();
   }
 
+  /// ===============================
+  /// CLEANUP
+  /// ===============================
   @override
   void dispose() {
-    _positionSubscription?.cancel();
-    _positionSubscription = null;
+    _positionStream?.cancel();
     super.dispose();
   }
 }

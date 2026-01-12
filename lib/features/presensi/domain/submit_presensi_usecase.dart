@@ -1,11 +1,19 @@
-import 'presensi_repository_interface.dart';
+import '../data/presensi_repository.dart';
 
 class SubmitPresensiUseCase {
-  final PresensiRepositoryInterface repository;
+  final PresensiRepository repository;
 
   SubmitPresensiUseCase(this.repository);
 
-  Future<Map<String, dynamic>> execute(double lat, double long, String status) {
-    return repository.submitPresensi(lat, long, status);
+  Future<void> execute({
+    required String type,
+    required double latitude,
+    required double longitude,
+  }) async {
+    await repository.submitPresensi(
+      type: type,
+      latitude: latitude,
+      longitude: longitude,
+    );
   }
 }

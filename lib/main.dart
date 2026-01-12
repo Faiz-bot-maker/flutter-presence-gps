@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'features/auth/auth_session.dart';
 import 'features/auth/login_page.dart';
-import 'features/presensi/data/presensi_repository.dart';
+import 'features/presensi/data/presensi_repository_impl.dart';
 import 'features/presensi/domain/submit_presensi_usecase.dart';
 import 'features/presensi/presentation/presensi_page.dart';
 import 'features/presensi/presentation/presensi_provider.dart';
@@ -21,7 +21,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); 
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthSession()),
         ChangeNotifierProvider(
-          create: (_) => PresensiProvider(submitPresensiUseCase: submitPresensiUseCase),
+          create: (_) =>
+              PresensiProvider(submitPresensiUseCase: submitPresensiUseCase),
         ),
       ],
       child: MaterialApp(
@@ -90,14 +91,22 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
+            ),
             hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.6)),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
               elevation: 0,
               shadowColor: Colors.transparent,
             ),
@@ -159,10 +168,7 @@ class _CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const _CustomBottomNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _CustomBottomNavBar({required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -218,14 +224,11 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: TweenAnimationBuilder(
-        tween: Tween<double>(
-          begin: 0, 
-          end: isSelected ? 1.0 : 0.0
-        ),
+        tween: Tween<double>(begin: 0, end: isSelected ? 1.0 : 0.0),
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutBack,
         builder: (context, double value, child) {
@@ -237,11 +240,7 @@ class _NavBarItem extends StatelessWidget {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Color.lerp(
-                    Colors.white, 
-                    colorScheme.primary, 
-                    value
-                  ),
+                  color: Color.lerp(Colors.white, colorScheme.primary, value),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -254,11 +253,7 @@ class _NavBarItem extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: Color.lerp(
-                    Colors.grey, 
-                    Colors.white, 
-                    value
-                  ),
+                  color: Color.lerp(Colors.grey, Colors.white, value),
                   size: 28,
                 ),
               ),
@@ -275,16 +270,57 @@ class _HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final menuItems = <({String title, IconData icon, Widget page, Color color})>[
-      (title: 'Presensi', icon: Icons.fingerprint_rounded, page: const PresensiPage(), color: Colors.blue),
-      (title: 'Report Progress', icon: Icons.bar_chart_rounded, page: const ReportProgressPage(), color: Colors.orange),
-      (title: 'Pengaduan', icon: Icons.support_agent_rounded, page: const TiketPage(), color: Colors.purple),
-      (title: 'Kasbon', icon: Icons.payments_rounded, page: const KasbonPage(), color: Colors.green),
-      (title: 'Lembur/Cuti', icon: Icons.event_available_rounded, page: const LemburCutiIjinPage(), color: Colors.pink),
-      (title: 'Shifting', icon: Icons.schedule_rounded, page: const ShiftingKerjaPage(), color: Colors.teal),
-      (title: 'Data Pribadi', icon: Icons.person_rounded, page: const DataPribadiPage(), color: Colors.indigo),
-      (title: 'Info Perusahaan', icon: Icons.business_rounded, page: const InformasiPerusahaanPage(), color: Colors.cyan),
-    ];
+    final menuItems =
+        <({String title, IconData icon, Widget page, Color color})>[
+          (
+            title: 'Presensi',
+            icon: Icons.fingerprint_rounded,
+            page: const PresensiPage(),
+            color: Colors.blue,
+          ),
+          (
+            title: 'Report Progress',
+            icon: Icons.bar_chart_rounded,
+            page: const ReportProgressPage(),
+            color: Colors.orange,
+          ),
+          (
+            title: 'Pengaduan',
+            icon: Icons.support_agent_rounded,
+            page: const TiketPage(),
+            color: Colors.purple,
+          ),
+          (
+            title: 'Kasbon',
+            icon: Icons.payments_rounded,
+            page: const KasbonPage(),
+            color: Colors.green,
+          ),
+          (
+            title: 'Lembur/Cuti',
+            icon: Icons.event_available_rounded,
+            page: const LemburCutiIjinPage(),
+            color: Colors.pink,
+          ),
+          (
+            title: 'Shifting',
+            icon: Icons.schedule_rounded,
+            page: const ShiftingKerjaPage(),
+            color: Colors.teal,
+          ),
+          (
+            title: 'Data Pribadi',
+            icon: Icons.person_rounded,
+            page: const DataPribadiPage(),
+            color: Colors.indigo,
+          ),
+          (
+            title: 'Info Perusahaan',
+            icon: Icons.business_rounded,
+            page: const InformasiPerusahaanPage(),
+            color: Colors.cyan,
+          ),
+        ];
 
     return Scaffold(
       body: Stack(
@@ -298,10 +334,14 @@ class _HomeContent extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.05),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 60,
                     spreadRadius: 10,
                   ),
@@ -309,7 +349,7 @@ class _HomeContent extends StatelessWidget {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -324,60 +364,71 @@ class _HomeContent extends StatelessWidget {
                     child: CustomScrollView(
                       slivers: [
                         SliverPadding(
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 20, horizontalPadding, 20),
+                          padding: EdgeInsets.fromLTRB(
+                            horizontalPadding,
+                            20,
+                            horizontalPadding,
+                            20,
+                          ),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
                               // Header Profile
                               _HomeHeader(),
                               const SizedBox(height: 32),
-                              
+
                               // Greeting Card
                               _GreetingCard(),
                               const SizedBox(height: 32),
-                              
+
                               // Section Title
                               Text(
                                 'Layanan Utama',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.5,
+                                    ),
                               ),
                               const SizedBox(height: 16),
                             ]),
                           ),
                         ),
-                        
+
                         // Grid Menu
                         SliverPadding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          sliver: SliverGrid(
-                            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 200,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 0.9,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final item = menuItems[index];
-                                return _MenuCard(
-                                  title: item.title,
-                                  icon: item.icon,
-                                  color: item.color,
-                                  index: index,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => item.page),
-                                    );
-                                  },
-                                );
-                              },
-                              childCount: menuItems.length,
-                            ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
                           ),
-                        ),                      
+                          sliver: SliverGrid(
+                            gridDelegate:
+                                SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 200,
+                                  mainAxisSpacing: 16,
+                                  crossAxisSpacing: 16,
+                                  childAspectRatio: 0.9,
+                                ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final item = menuItems[index];
+                              return _MenuCard(
+                                title: item.title,
+                                icon: item.icon,
+                                color: item.color,
+                                index: index,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => item.page,
+                                    ),
+                                  );
+                                },
+                              );
+                            }, childCount: menuItems.length),
+                          ),
+                        ),
                         SliverPadding(
                           padding: EdgeInsets.only(
                             bottom: 100 + MediaQuery.of(context).padding.bottom,
@@ -446,7 +497,9 @@ class _HomeHeader extends StatelessWidget {
           child: CircleAvatar(
             radius: 24,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder for profile
+            backgroundImage: const NetworkImage(
+              'https://i.pravatar.cc/150?img=11',
+            ), // Placeholder for profile
           ),
         ),
       ],
@@ -522,16 +575,25 @@ class _GreetingCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.verified_user_rounded, color: Colors.white, size: 16),
+                          Icon(
+                            Icons.verified_user_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Status Kehadiran',
@@ -546,14 +608,21 @@ class _GreetingCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: const [
-                          Icon(Icons.work_history_rounded, color: Colors.white70, size: 14),
+                          Icon(
+                            Icons.work_history_rounded,
+                            color: Colors.white70,
+                            size: 14,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             'Shift Pagi',
@@ -568,9 +637,9 @@ class _GreetingCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Jam Masuk Section
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -626,7 +695,7 @@ class _GreetingCard extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 24),
-                
+
                 // Main Text
                 Text(
                   'Catat kehadiranmu tepat waktu.',
@@ -636,9 +705,9 @@ class _GreetingCard extends StatelessWidget {
                     height: 1.5,
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Modern Glassmorphic Button
                 Container(
                   width: double.infinity,
@@ -672,7 +741,9 @@ class _GreetingCard extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const PresensiPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const PresensiPage(),
+                          ),
                         );
                       },
                       child: Row(
@@ -688,7 +759,11 @@ class _GreetingCard extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: 12),
-                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ],
                       ),
                     ),
@@ -722,7 +797,8 @@ class _MenuCard extends StatefulWidget {
   State<_MenuCard> createState() => _MenuCardState();
 }
 
-class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixin {
+class _MenuCardState extends State<_MenuCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -733,9 +809,10 @@ class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixi
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -751,10 +828,7 @@ class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixi
       duration: Duration(milliseconds: 400 + (widget.index * 100)),
       curve: Curves.easeOutBack,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
+        return Transform.scale(scale: value, child: child);
       },
       child: GestureDetector(
         onTapDown: (_) => _controller.forward(),
@@ -765,10 +839,8 @@ class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixi
         onTapCancel: () => _controller.reverse(),
         child: AnimatedBuilder(
           animation: _scaleAnimation,
-          builder: (context, child) => Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          ),
+          builder: (context, child) =>
+              Transform.scale(scale: _scaleAnimation.value, child: child),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -791,11 +863,7 @@ class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixi
                     color: widget.color.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    widget.icon,
-                    color: widget.color,
-                    size: 28,
-                  ),
+                  child: Icon(widget.icon, color: widget.color, size: 28),
                 ),
                 const SizedBox(height: 16),
                 Text(
