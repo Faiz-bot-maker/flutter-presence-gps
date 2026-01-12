@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:async'; 
+import 'dart:async';
+import 'dart:ui';
 import 'features/auth/auth_session.dart';
 import 'features/auth/login_page.dart';
 import 'features/presensi/data/presensi_repository.dart';
@@ -20,7 +21,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key}); 
 
   @override
   Widget build(BuildContext context) {
@@ -113,8 +114,164 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  int _currentIndex = 1; // Default to Home
+
+  final List<Widget> _pages = [
+    const ShiftingKerjaPage(),
+    const _HomeContent(),
+    const DataPribadiPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          _pages[_currentIndex],
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 24,
+            child: _CustomBottomNavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CustomBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+
+  const _CustomBottomNavBar({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9), // Slate-100 (Agak abu sedikit)
+        borderRadius: BorderRadius.circular(40),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _NavBarItem(
+            icon: Icons.schedule_rounded,
+            isSelected: currentIndex == 0,
+            onTap: () => onTap(0),
+          ),
+          _NavBarItem(
+            icon: Icons.home_rounded,
+            isSelected: currentIndex == 1,
+            onTap: () => onTap(1),
+          ),
+          _NavBarItem(
+            icon: Icons.person_rounded,
+            isSelected: currentIndex == 2,
+            onTap: () => onTap(2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavBarItem extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavBarItem({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: TweenAnimationBuilder(
+        tween: Tween<double>(
+          begin: 0, 
+          end: isSelected ? 1.0 : 0.0
+        ),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        builder: (context, double value, child) {
+          return Transform.translate(
+            offset: Offset(0, -10 * value), // Move up slightly when selected
+            child: Transform.scale(
+              scale: 1.0 + (0.3 * value), // Scale up to 1.3x
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Color.lerp(
+                    Colors.white, 
+                    colorScheme.primary, 
+                    value
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.3 * value),
+                      blurRadius: 10 * value,
+                      spreadRadius: 2 * value,
+                      offset: Offset(0, 4 * value),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  icon,
+                  color: Color.lerp(
+                    Colors.grey, 
+                    Colors.white, 
+                    value
+                  ),
+                  size: 28,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent();
 
   @override
   Widget build(BuildContext context) {
@@ -220,9 +377,12 @@ class DashboardPage extends StatelessWidget {
                               childCount: menuItems.length,
                             ),
                           ),
+                        ),                      
+                        SliverPadding(
+                          padding: EdgeInsets.only(
+                            bottom: 100 + MediaQuery.of(context).padding.bottom,
+                          ),
                         ),
-                        
-                        SliverPadding(padding: EdgeInsets.only(bottom: 40)),
                       ],
                     ),
                   ),
@@ -252,12 +412,21 @@ class _HomeHeader extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            const SizedBox(height: 4),
             Text(
-              'Karyawan Glosindo',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              'Muhammad Faiz Fathurahman',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: -0.5,
+                fontSize: 20,
+              ),
+            ),
+            Text(
+              'Mobile Developer',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -268,7 +437,7 @@ class _HomeHeader extends StatelessWidget {
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -277,7 +446,7 @@ class _HomeHeader extends StatelessWidget {
           child: CircleAvatar(
             radius: 24,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
+            backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder for profile
           ),
         ),
       ],
@@ -296,86 +465,236 @@ class _HomeHeader extends StatelessWidget {
 class _GreetingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [scheme.primary, scheme.tertiary],
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF2563EB), // Blue 600
+            Color(0xFF4F46E5), // Indigo 600
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF2563EB).withOpacity(0.4),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 20),
+          // Decorative Circles
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Status Kehadiran',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Jangan lupa absen hari ini!',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Catat kehadiranmu tepat waktu untuk performa yang lebih baik.',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 14,
+          Positioned(
+            bottom: -40,
+            left: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
             ),
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PresensiPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: scheme.primary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+
+          Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with Status and Shift
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.verified_user_rounded, color: Colors.white, size: 16),
+                          SizedBox(width: 8),
+                          Text(
+                            'Status Kehadiran',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.work_history_rounded, color: Colors.white70, size: 14),
+                          SizedBox(width: 6),
+                          Text(
+                            'Shift Pagi',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text('Buka Presensi'),
+                
+                const SizedBox(height: 24),
+                
+                // Jam Masuk Section
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Jam Masuk',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '08:00 WIB',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // const SizedBox(width: 24),
+                    //  Column(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     Text(
+                    //       'Jam Pulang',
+                    //       style: TextStyle(
+                    //         color: Colors.white.withOpacity(0.8),
+                    //         fontSize: 14,
+                    //         fontWeight: FontWeight.w500,
+                    //       ),
+                    //     ),
+                    //     const SizedBox(height: 4),
+                    //     const Text(
+                    //       '17:00 WIB',
+                    //       style: TextStyle(
+                    //         color: Colors.white,
+                    //         fontSize: 32,
+                    //         fontWeight: FontWeight.w800,
+                    //         letterSpacing: -1,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+                
+                // Main Text
+                Text(
+                  'Catat kehadiranmu tepat waktu.',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Modern Glassmorphic Button
+                Container(
+                  width: double.infinity,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.25),
+                        Colors.white.withOpacity(0.1),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.4),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PresensiPage()),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Buka Presensi',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

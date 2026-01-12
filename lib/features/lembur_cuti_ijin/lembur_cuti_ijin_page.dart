@@ -5,28 +5,34 @@ class LemburCutiIjinPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Pengajuan'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        titleTextStyle: const TextStyle(
-          color: Colors.black87,
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: const [
-            _HeaderCard(),
-            SizedBox(height: 24),
-            _RequestForm(),
-          ],
-        ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: const Text('Pengajuan'),
+            centerTitle: false,
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            titleTextStyle: TextStyle(
+              color: scheme.onSurface,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const _HeaderCard(),
+                const SizedBox(height: 24),
+                const _RequestForm(),
+              ]),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -41,24 +47,31 @@ class _HeaderCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+          colors: [Color(0xFF2563EB), Color(0xFF4F46E5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: const Color(0xFF2563EB).withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Row(
-        children: const [
-          Icon(Icons.assignment_rounded, color: Colors.white, size: 36),
-          SizedBox(width: 16),
-          Expanded(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -76,6 +89,7 @@ class _HeaderCard extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -126,6 +140,17 @@ class _RequestFormState extends State<_RequestForm> {
               prefixIcon: const Icon(Icons.list_alt_rounded),
               filled: true,
               fillColor: Colors.grey[50],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
+                  width: 2,
+                ),
+              ),
             ),
             items: categories
                 .map(
@@ -153,6 +178,17 @@ class _RequestFormState extends State<_RequestForm> {
               prefixIcon: const Icon(Icons.calendar_today_rounded),
               filled: true,
               fillColor: Colors.grey[50],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
+                  width: 2,
+                ),
+              ),
             ),
             onTap: () async {
               final date = await showDatePicker(
@@ -177,6 +213,17 @@ class _RequestFormState extends State<_RequestForm> {
               hintText: 'Tuliskan keterangan...',
               filled: true,
               fillColor: Colors.grey[50],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
+                  width: 2,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -191,6 +238,7 @@ class _RequestFormState extends State<_RequestForm> {
                 );
               },
               style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),

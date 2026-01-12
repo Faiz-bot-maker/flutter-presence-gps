@@ -1,213 +1,258 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class ShiftingKerjaPage extends StatelessWidget {
+class ShiftingKerjaPage extends StatefulWidget {
   const ShiftingKerjaPage({super.key});
+
+  @override
+  State<ShiftingKerjaPage> createState() => _ShiftingKerjaPageState();
+}
+
+class _ShiftingKerjaPageState extends State<ShiftingKerjaPage> {
+  DateTime _selectedDate = DateTime.now();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(8 * 60.0);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: const Text('Shifting Kerja'),
-            centerTitle: false,
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.transparent,
-            titleTextStyle: TextStyle(
-              color: scheme.onSurface,
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _SummaryCard(),
-                const SizedBox(height: 24),
-                Text(
-                  'Daftar Shift',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurface.withValues(alpha: 0.8),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _ShiftCard(
-                  title: 'Shift Pagi',
-                  time: '08:00 - 16:00',
-                  isActive: true,
-                ),
-                const SizedBox(height: 16),
-                const _ShiftCard(
-                  title: 'Shift Siang',
-                  time: '14:00 - 22:00',
-                  isActive: false,
-                ),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF0EA5E9), const Color(0xFF38BDF8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const Text('Jadwal Shift'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: scheme.onSurface,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+        actions: [
+          IconButton(
+            onPressed: () => setState(() => _selectedDate = DateTime.now()),
+            icon: const Icon(Icons.today_rounded),
           ),
         ],
       ),
-      child: Row(
+      body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
+          _buildDateHeader(),
+          _buildDateStrip(scheme),
+          Expanded(child: _buildTimeline(scheme)),
+        ],
+      ),
+    );
+  }
+
+  // ================= HEADER =================
+
+  Widget _buildDateHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            DateFormat('MMMM yyyy').format(_selectedDate),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
             ),
-            child: const Icon(Icons.schedule_rounded, color: Colors.white, size: 32),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Shift Saat Ini',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Shift Pagi',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedDate =
+                        _selectedDate.subtract(const Duration(days: 7));
+                  });
+                },
+                icon: const Icon(Icons.chevron_left_rounded),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedDate =
+                        _selectedDate.add(const Duration(days: 7));
+                  });
+                },
+                icon: const Icon(Icons.chevron_right_rounded),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
 
-class _ShiftCard extends StatelessWidget {
-  final String title;
-  final String time;
-  final bool isActive;
+  // ================= DATE STRIP =================
 
-  const _ShiftCard({required this.title, required this.time, required this.isActive});
+  Widget _buildDateStrip(ColorScheme scheme) {
+    final startOfWeek =
+        _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
 
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = const Color(0xFF0EA5E9);
-    
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: isActive ? Border.all(color: activeColor, width: 2) : Border.all(color: Colors.transparent),
-        boxShadow: [
-          BoxShadow(
-            color: isActive ? activeColor.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isActive ? activeColor.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.access_time_rounded, 
-                    color: isActive ? activeColor : Colors.grey,
-                    size: 24
-                  ),
+      height: 100,
+      color: Colors.white,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        scrollDirection: Axis.horizontal,
+        itemCount: 7,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final date = startOfWeek.add(Duration(days: index));
+          final isSelected = DateUtils.isSameDay(date, _selectedDate);
+          final isToday = DateUtils.isSameDay(date, DateTime.now());
+
+          return GestureDetector(
+            onTap: () => setState(() => _selectedDate = date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              width: 60,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? scheme.primary
+                    : (isToday
+                        ? scheme.primaryContainer
+                        : Colors.white),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? scheme.primary
+                      : Colors.grey.withValues(alpha: 0.15),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: isActive ? Colors.black87 : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          color: isActive ? activeColor : Colors.grey[500],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: activeColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Aktif',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('E').format(date),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                          isSelected ? Colors.white : Colors.grey[500],
                     ),
                   ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('d').format(date),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          isSelected ? Colors.white : scheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ================= TIMELINE =================
+
+  Widget _buildTimeline(ColorScheme scheme) {
+    final isWeekend =
+        _selectedDate.weekday == 6 || _selectedDate.weekday == 7;
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      child: Stack(
+        children: [
+          Column(
+            children: List.generate(24, (index) {
+              return SizedBox(
+                height: 60,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 60,
+                      child: Text(
+                        '${index.toString().padLeft(2, '0')}:00',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(height: 1, color: Colors.grey[200]),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ),
-        ),
+
+          // SHIFT
+          if (!isWeekend)
+            Positioned(
+              top: 8 * 60.0,
+              left: 70,
+              right: 20,
+              height: 9 * 60.0,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border(
+                    left: BorderSide(
+                      color: scheme.primary,
+                      width: 4,
+                    ),
+                  ),
+                ),
+                child: const Text(
+                  'Shift Pagi\n08:00 - 17:00',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+
+          // WEEKEND
+          if (isWeekend)
+            Positioned(
+              top: 20,
+              left: 70,
+              right: 20,
+              height: 120,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(30, 255, 0, 0),
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  border: Border(
+                    left: BorderSide(color: Colors.red, width: 4),
+                  ),
+                ),
+                child: const Text(
+                  'Libur Akhir Pekan',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

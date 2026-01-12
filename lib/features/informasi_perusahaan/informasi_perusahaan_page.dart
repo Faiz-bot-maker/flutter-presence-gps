@@ -6,6 +6,7 @@ class InformasiPerusahaanPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
@@ -26,14 +27,14 @@ class InformasiPerusahaanPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _CompanyHeader(),
-                const SizedBox(height: 24),
+                const _CompanyHeroImage(),
+                const SizedBox(height: 32),
                 Text(
                   'Profil Perusahaan',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurface.withValues(alpha: 0.8),
-                  ),
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurface.withValues(alpha: 0.8),
+                      ),
                 ),
                 const SizedBox(height: 16),
                 _InfoCard(),
@@ -46,52 +47,77 @@ class InformasiPerusahaanPage extends StatelessWidget {
   }
 }
 
-class _CompanyHeader extends StatelessWidget {
+/* ================= HERO IMAGE ================= */
+
+class _CompanyHeroImage extends StatelessWidget {
+  const _CompanyHeroImage();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF0F172A), const Color(0xFF334155)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+          SizedBox(
+            height: 220,
+            width: double.infinity,
+            child: Image.network(
+              'https://k2space.imgix.net/app/uploads/2023/06/K2-Criteo-Office-Curator-LARGE-102-scaled.jpg?auto=format&fit=max&q=90&w=5000',
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported_outlined,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              },
             ),
-            child: const Icon(Icons.apartment_rounded, size: 32, color: Color(0xFF0F172A)),
           ),
-          const SizedBox(width: 20),
-          Expanded(
+          Container(
+            height: 220,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.15),
+                  Colors.black.withValues(alpha: 0.55),
+                ],
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 24,
+            bottom: 24,
+            right: 24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'PT. Glosindo',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 26,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Teknologi & Informasi',
+                SizedBox(height: 6),
+                Text(
+                  'Solusi Teknologi & Informasi Terpercaya',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
@@ -106,6 +132,8 @@ class _CompanyHeader extends StatelessWidget {
     );
   }
 }
+
+/* ================= INFO CARD ================= */
 
 class _InfoCard extends StatelessWidget {
   @override
@@ -122,47 +150,49 @@ class _InfoCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: const [
+      child: const Column(
+        children: [
           _InfoTile(
             icon: Icons.location_on_rounded,
             title: 'Alamat Kantor',
             value: 'Jl. Sudirman No. 1, Jakarta Pusat, DKI Jakarta',
-            color: Colors.red,
+            color: Color(0xFF2563EB),
           ),
           Divider(height: 1, indent: 64),
           _InfoTile(
             icon: Icons.phone_rounded,
             title: 'Telepon',
             value: '(021) 1234-5678',
-            color: Colors.green,
+            color: Color(0xFF2563EB),
           ),
           Divider(height: 1, indent: 64),
           _InfoTile(
             icon: Icons.language_rounded,
             title: 'Website',
             value: 'www.glosindo.com',
-            color: Colors.blue,
+            color: Color(0xFF2563EB),
           ),
           Divider(height: 1, indent: 64),
           _InfoTile(
             icon: Icons.visibility_rounded,
             title: 'Visi',
             value: 'Menjadi perusahaan teknologi terdepan di Indonesia.',
-            color: Colors.purple,
+            color: Color(0xFF2563EB),
           ),
           Divider(height: 1, indent: 64),
           _InfoTile(
             icon: Icons.flag_rounded,
             title: 'Misi',
             value: 'Memberikan solusi digital terbaik bagi masyarakat.',
-            color: Colors.orange,
+            color: Color(0xFF2563EB),
           ),
         ],
       ),
     );
   }
 }
+
+/* ================= INFO TILE ================= */
 
 class _InfoTile extends StatelessWidget {
   final IconData icon;
@@ -187,7 +217,7 @@ class _InfoTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -200,7 +230,7 @@ class _InfoTile extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    color: Colors.grey[500],
+                    color: Colors.grey,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),

@@ -59,15 +59,15 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFFA855F7), const Color(0xFFD946EF)],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF4F46E5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+            color: const Color(0xFF2563EB).withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

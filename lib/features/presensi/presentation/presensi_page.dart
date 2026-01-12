@@ -57,11 +57,14 @@ class _PresensiPageState extends State<PresensiPage> {
                       Padding(
                         padding: const EdgeInsets.only(right: 16),
                         child: IconButton(
-                          onPressed: () => context.read<PresensiProvider>().getCurrentLocation(),
+                          onPressed: () => context
+                              .read<PresensiProvider>()
+                              .getCurrentLocation(),
                           icon: const Icon(Icons.refresh_rounded),
                           tooltip: 'Refresh Lokasi',
                           style: IconButton.styleFrom(
-                            backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                            backgroundColor: scheme.surfaceContainerHighest
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -89,10 +92,15 @@ class _PresensiPageState extends State<PresensiPage> {
                                 // 2. Status Card (Lampu & Map)
                                 Card(
                                   elevation: 0,
-                                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                  color: scheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
-                                    side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+                                    side: BorderSide(
+                                      color: scheme.outlineVariant.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                    ),
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
@@ -100,17 +108,33 @@ class _PresensiPageState extends State<PresensiPage> {
                                       children: [
                                         // Lampu Status Masuk/Belum
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Container(
                                               width: 16,
                                               height: 16,
                                               decoration: BoxDecoration(
-                                                color: hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red,
+                                                color: hasCheckedIn
+                                                    ? (provider.hasCheckedOut
+                                                          ? Colors.grey
+                                                          : Colors.green)
+                                                    : Colors.red,
                                                 shape: BoxShape.circle,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: (hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red).withValues(alpha: 0.5),
+                                                    color:
+                                                        (hasCheckedIn
+                                                                ? (provider
+                                                                          .hasCheckedOut
+                                                                      ? Colors
+                                                                            .grey
+                                                                      : Colors
+                                                                            .green)
+                                                                : Colors.red)
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
                                                     blurRadius: 10,
                                                     spreadRadius: 2,
                                                   ),
@@ -119,133 +143,209 @@ class _PresensiPageState extends State<PresensiPage> {
                                             ),
                                             const SizedBox(width: 12),
                                             Text(
-                                              hasCheckedIn ? (provider.hasCheckedOut ? 'SUDAH PULANG' : 'SUDAH MASUK') : 'BELUM MASUK',
-                                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: hasCheckedIn ? (provider.hasCheckedOut ? Colors.grey : Colors.green) : Colors.red,
-                                                letterSpacing: 1.0,
-                                              ),
+                                              hasCheckedIn
+                                                  ? (provider.hasCheckedOut
+                                                        ? 'SUDAH PULANG'
+                                                        : 'SUDAH MASUK')
+                                                  : 'BELUM MASUK',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: hasCheckedIn
+                                                        ? (provider
+                                                                  .hasCheckedOut
+                                                              ? Colors.grey
+                                                              : Colors.green)
+                                                        : Colors.red,
+                                                    letterSpacing: 1.0,
+                                                  ),
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 20),
                                         const Divider(),
                                         const SizedBox(height: 20),
-                                        
+
                                         // MAP WIDGET (Pengganti Info Jarak)
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                           child: SizedBox(
                                             height: 250, // Tinggi map
                                             child: _OfficeMap(
-                                              currentLatLng: provider.currentPosition != null
-                                                  ? LatLng(provider.currentPosition!.latitude, provider.currentPosition!.longitude)
+                                              currentLatLng:
+                                                  provider.currentPosition !=
+                                                      null
+                                                  ? LatLng(
+                                                      provider
+                                                          .currentPosition!
+                                                          .latitude,
+                                                      provider
+                                                          .currentPosition!
+                                                          .longitude,
+                                                    )
                                                   : null,
                                               inRadius: inRadius,
                                             ),
                                           ),
                                         ),
-
-
                                       ],
                                     ),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(height: 32),
 
                                 // 3. Tombol Aksi
                                 Text(
                                   'Aksi Presensi',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
                                 ),
                                 const SizedBox(height: 16),
-                                
-                                Row(
-                                  children: [
-                                    // Tombol Masuk: Muncul jika belum checkin
-                                    if (!hasCheckedIn)
-                                      Expanded(
-                                        child: _PresenceButton(
-                                          label: 'Absen Masuk',
-                                          icon: Icons.login_rounded,
-                                          color: Colors.green,
-                                          onPressed: provider.isLoading || !isReady || !inRadius
-                                              ? null
-                                              : () async {
-                                                  await provider.submitPresensi('MASUK');
-                                                  if (!context.mounted) return;
-                                                  _showResultSnack(context, provider.message, scheme);
-                                                },
-                                          isLoading: provider.isLoading,
-                                        ),
-                                      ),
-                                    
-                                    // Tombol Keluar: Muncul jika sudah checkin tapi belum checkout
-                                    if (hasCheckedIn && !provider.hasCheckedOut)
-                                      Expanded(
-                                        child: _PresenceButton(
-                                          label: 'Absen Keluar',
-                                          icon: Icons.logout_rounded,
-                                          color: Colors.red,
-                                          isOutlined: true,
-                                          onPressed: provider.isLoading || !isReady || !inRadius
-                                              ? null
-                                              : () async {
-                                                  await provider.submitPresensi('KELUAR');
-                                                  if (!context.mounted) return;
-                                                  _showResultSnack(context, provider.message, scheme);
-                                                },
-                                          isLoading: provider.isLoading,
-                                        ),
-                                      ),
 
-                                    // Info Sudah Pulang
-                                    if (hasCheckedIn && provider.hasCheckedOut)
-                                      Expanded(
-                                        child: Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                            borderRadius: BorderRadius.circular(16),
-                                            border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isMobile = constraints.maxWidth < 520;
+
+                                    return Wrap(
+                                      spacing: 16,
+                                      runSpacing: 16,
+                                      children: [
+                                        if (!hasCheckedIn)
+                                          SizedBox(
+                                            width: isMobile
+                                                ? constraints.maxWidth
+                                                : (constraints.maxWidth / 2) -
+                                                      8,
+                                            child: _PresenceButton(
+                                              label: 'Absen Masuk',
+                                              icon: Icons.login_rounded,
+                                              color: Colors.green,
+                                              onPressed:
+                                                  provider.isLoading ||
+                                                      !isReady ||
+                                                      !inRadius
+                                                  ? null
+                                                  : () async {
+                                                      await provider
+                                                          .submitPresensi(
+                                                            'MASUK',
+                                                          );
+                                                      if (!context.mounted)
+                                                        return;
+                                                      _showResultSnack(
+                                                        context,
+                                                        provider.message,
+                                                        scheme,
+                                                      );
+                                                    },
+                                              isLoading: provider.isLoading,
+                                            ),
                                           ),
-                                          child: Column(
-                                            children: [
-                                              const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'Presensi Hari Ini Selesai',
-                                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: scheme.onSurface,
+
+                                        if (hasCheckedIn &&
+                                            !provider.hasCheckedOut)
+                                          SizedBox(
+                                            width: isMobile
+                                                ? constraints.maxWidth
+                                                : (constraints.maxWidth / 2) -
+                                                      8,
+                                            child: _PresenceButton(
+                                              label: 'Absen Keluar',
+                                              icon: Icons.logout_rounded,
+                                              color: Colors.red,
+                                              isOutlined: true,
+                                              onPressed:
+                                                  provider.isLoading ||
+                                                      !isReady ||
+                                                      !inRadius
+                                                  ? null
+                                                  : () async {
+                                                      await provider
+                                                          .submitPresensi(
+                                                            'KELUAR',
+                                                          );
+                                                      if (!context.mounted)
+                                                        return;
+                                                      _showResultSnack(
+                                                        context,
+                                                        provider.message,
+                                                        scheme,
+                                                      );
+                                                    },
+                                              isLoading: provider.isLoading,
+                                            ),
+                                          ),
+
+                                        if (hasCheckedIn &&
+                                            provider.hasCheckedOut)
+                                          SizedBox(
+                                            width: constraints.maxWidth,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: scheme
+                                                    .surfaceContainerHighest
+                                                    .withValues(alpha: 0.3),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                border: Border.all(
+                                                  color: scheme.outlineVariant
+                                                      .withValues(alpha: 0.5),
                                                 ),
                                               ),
-                                              Text(
-                                                'Sampai jumpa besok!',
-                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                  color: scheme.onSurfaceVariant,
-                                                ),
+                                              child: Column(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.check_circle_rounded,
+                                                    color: Colors.green,
+                                                    size: 48,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    'Presensi Hari Ini Selesai',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleMedium
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                  ),
+                                                  Text(
+                                                    'Sampai jumpa besok!',
+                                                    style: Theme.of(
+                                                      context,
+                                                    ).textTheme.bodyMedium,
+                                                  ),
+                                                ],
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                  ],
+                                      ],
+                                    );
+                                  },
                                 ),
-                                
+
                                 // Pesan error/info tambahan di bawah
                                 if (provider.message.isNotEmpty) ...[
-                                   const SizedBox(height: 16),
-                                   Center(
-                                     child: Text(
-                                       provider.message,
-                                       textAlign: TextAlign.center,
-                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                         color: scheme.onSurfaceVariant,
-                                       ),
-                                     ),
-                                   ),
+                                  const SizedBox(height: 16),
+                                  Center(
+                                    child: Text(
+                                      provider.message,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: scheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
                                 ],
                               ],
                             );
@@ -266,7 +366,7 @@ class _PresensiPageState extends State<PresensiPage> {
 
 class _DigitalClock extends StatelessWidget {
   final Color color;
-  
+
   const _DigitalClock({required this.color});
 
   @override
@@ -278,7 +378,7 @@ class _DigitalClock extends StatelessWidget {
         final hour = now.hour.toString().padLeft(2, '0');
         final minute = now.minute.toString().padLeft(2, '0');
         final second = now.second.toString().padLeft(2, '0');
-        
+
         return Column(
           children: [
             Text(
@@ -302,14 +402,35 @@ class _DigitalClock extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    
+    final days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
     final dayName = days[date.weekday - 1];
     final day = date.day;
     final monthName = months[date.month - 1];
     final year = date.year;
-    
+
     return '$dayName, $day $monthName $year';
   }
 }
@@ -322,13 +443,18 @@ class _OfficeMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final officeLatLng = LatLng(Constants.officeLatitude, Constants.officeLongitude);
-    
+    final officeLatLng = LatLng(
+      Constants.officeLatitude,
+      Constants.officeLongitude,
+    );
+
     return FlutterMap(
       options: MapOptions(
         initialCenter: officeLatLng,
         initialZoom: 16.0,
-        interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
       ),
       children: [
         TileLayer(
@@ -354,7 +480,11 @@ class _OfficeMap extends StatelessWidget {
               point: officeLatLng,
               width: 40,
               height: 40,
-              child: const Icon(Icons.business_rounded, color: Colors.blue, size: 40),
+              child: const Icon(
+                Icons.business_rounded,
+                color: Colors.blue,
+                size: 40,
+              ),
             ),
             // Marker User
             if (currentLatLng != null)
@@ -371,9 +501,9 @@ class _OfficeMap extends StatelessWidget {
                     ],
                   ),
                   child: Icon(
-                    Icons.person_pin_circle_rounded, 
-                    color: inRadius ? Colors.green : Colors.red, 
-                    size: 32
+                    Icons.person_pin_circle_rounded,
+                    color: inRadius ? Colors.green : Colors.red,
+                    size: 32,
                   ),
                 ),
               ),
@@ -405,7 +535,8 @@ class _PresenceButton extends StatefulWidget {
   State<_PresenceButton> createState() => _PresenceButtonState();
 }
 
-class _PresenceButtonState extends State<_PresenceButton> with SingleTickerProviderStateMixin {
+class _PresenceButtonState extends State<_PresenceButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -416,9 +547,10 @@ class _PresenceButtonState extends State<_PresenceButton> with SingleTickerProvi
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -432,7 +564,7 @@ class _PresenceButtonState extends State<_PresenceButton> with SingleTickerProvi
     final isDisabled = widget.onPressed == null;
     final theme = Theme.of(context);
     final effectiveColor = isDisabled ? theme.disabledColor : widget.color;
-    
+
     return GestureDetector(
       onTapDown: isDisabled ? null : (_) => _controller.forward(),
       onTapUp: isDisabled ? null : (_) => _controller.reverse(),
@@ -440,20 +572,21 @@ class _PresenceButtonState extends State<_PresenceButton> with SingleTickerProvi
       onTap: widget.onPressed,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: Container(
-          height: 100,
+          constraints: const BoxConstraints(minHeight: 100),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: widget.isOutlined 
-                ? theme.colorScheme.surface 
+            color: widget.isOutlined
+                ? theme.colorScheme.surface
                 : effectiveColor,
             borderRadius: BorderRadius.circular(20),
             border: widget.isOutlined
-                ? Border.all(color: effectiveColor.withValues(alpha: 0.5), width: 2)
+                ? Border.all(
+                    color: effectiveColor.withValues(alpha: 0.5),
+                    width: 2,
+                  )
                 : null,
             boxShadow: isDisabled || widget.isOutlined
                 ? null
@@ -509,9 +642,15 @@ class _PresenceButtonState extends State<_PresenceButton> with SingleTickerProvi
   }
 }
 
-void _showResultSnack(BuildContext context, String message, ColorScheme scheme) {
+void _showResultSnack(
+  BuildContext context,
+  String message,
+  ColorScheme scheme,
+) {
   final isSuccess = message.toLowerCase().contains('berhasil');
-  final bg = isSuccess ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12);
+  final bg = isSuccess
+      ? Colors.green.withValues(alpha: 0.12)
+      : Colors.red.withValues(alpha: 0.12);
   final fg = isSuccess ? Colors.green : Colors.red;
 
   ScaffoldMessenger.of(context).clearSnackBars();
@@ -528,12 +667,18 @@ void _showResultSnack(BuildContext context, String message, ColorScheme scheme) 
         ),
         child: Row(
           children: [
-            Icon(isSuccess ? Icons.check_circle_rounded : Icons.error_rounded, color: fg),
+            Icon(
+              isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
+              color: fg,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: fg, fontWeight: FontWeight.w700),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
